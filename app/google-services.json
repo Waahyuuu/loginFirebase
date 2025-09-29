@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "184622800143",
+    "project_id": "tugas-2-pbb2",
+    "storage_bucket": "tugas-2-pbb2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:184622800143:android:6bdb4eccb1cffb90e5f27a",
+        "android_client_info": {
+          "package_name": "com.example.tugas2pbb"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "184622800143-le8v20hhmkjcph2c69ljkt839br1pqbu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.tugas2pbb",
+            "certificate_hash": "d9c784fbccc50e1a010f88dc8c9ac9db7b2bedbb"
+          }
+        },
+        {
+          "client_id": "184622800143-pcvvuhi0cuaha7l2lit6a9ubaev33u2i.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCK6WnYiYnglBOZi78JkWJiC3eDLelLRY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "184622800143-pcvvuhi0cuaha7l2lit6a9ubaev33u2i.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
