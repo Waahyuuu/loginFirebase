@@ -1,5 +1,6 @@
 package com.example.tugas2pbb
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -18,7 +19,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.launch
 
-
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
@@ -31,22 +31,16 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Inisialisasi CredentialManager & FirebaseAuth
         credentialManager = CredentialManager.create(this)
         auth = FirebaseAuth.getInstance()
 
-        // Agar layout tidak ketimpa status bar/navigation bar
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
-        // Daftar event tombol
         registerEvents()
-
-        // Cek user login saat pertama buka
-        checkCurrentUser()
     }
 
     private fun registerEvents() {
@@ -58,26 +52,18 @@ class MainActivity : AppCompatActivity() {
                 loginByGoogle(request)
             }
         }
-
-        // Tombol logout
-        binding.btnLogout.setOnClickListener {
-            auth.signOut()
-            Toast.makeText(this, "Logout berhasil", Toast.LENGTH_SHORT).show()
-            updateUI(null)
-        }
     }
 
     private fun prepareRequest(): GetCredentialRequest {
         val serverClientId = "184622800143-pcvvuhi0cuaha7l2lit6a9ubaev33u2i.apps.googleusercontent.com"
 
-
-        val googleOption = GetGoogleIdOption.Builder()
+        val googleIdOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(false)
             .setServerClientId(serverClientId)
             .build()
 
         return GetCredentialRequest.Builder()
-            .addCredentialOption(googleOption)
+            .addCredentialOption(googleIdOption)
             .build()
     }
 
@@ -90,7 +76,6 @@ class MainActivity : AppCompatActivity() {
 
             val credential = result.credential
             val idToken = GoogleIdTokenCredential.createFrom(credential.data).idToken
-
             firebaseLogin(idToken)
 
         } catch (exc: NoCredentialException) {
@@ -108,28 +93,31 @@ class MainActivity : AppCompatActivity() {
                 if (task.isSuccessful) {
                     val user = auth.currentUser
                     Toast.makeText(this, "Login berhasil: ${user?.displayName}", Toast.LENGTH_LONG).show()
-                    updateUI(user)
+                    Log.d("LoginDebug", "Login sukses, berpindah ke TodoActivity")
+                    toTodoListPage()
                 } else {
                     Toast.makeText(this, "Login gagal", Toast.LENGTH_LONG).show()
-                    updateUI(null)
+                    Log.e("LoginDebug", "Login gagal: ${task.exception?.message}")
                 }
             }
     }
 
-    private fun checkCurrentUser() {
-        val currentUser = auth.currentUser
-        updateUI(currentUser)
+    private fun toTodoListPage() {
+        Log.d("TodoDebug", "Pindah ke TodoActivity()")
+        val intent = Intent(this@MainActivity, TodoActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 
-    private fun updateUI(user: com.google.firebase.auth.FirebaseUser?) {
-        if (user != null) {
-            binding.tvStatus.text = "Halo, ${user.displayName}"
-            binding.btnLogout.isEnabled = true
-            binding.btnGoogle.isEnabled = false
+    override fun onStart() {
+        super.onStart()
+
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            Log.d("AutoLogin", "User sudah login: ${currentUser.displayName}")
+            toTodoListPage()
         } else {
-            binding.tvStatus.text = "Belum login"
-            binding.btnLogout.isEnabled = false
-            binding.btnGoogle.isEnabled = true
+            Log.d("AutoLogin", "Belum login, tetap di MainActivity")
         }
     }
 }
