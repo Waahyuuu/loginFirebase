@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -13,6 +14,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.tugas2pbb.adapter.Todoadapter
 import com.example.tugas2pbb.databinding.ActivityTodoBinding
+import com.example.tugas2pbb.entity.Todo
 import com.example.tugas2pbb.usecases.TodoUseCase
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
@@ -69,7 +71,39 @@ class TodoActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        todoAdapter = Todoadapter(mutableListOf())
+        todoAdapter = Todoadapter(mutableListOf(), object : Todoadapter.TodoItemEvents{
+            override fun onTodoItemEdit(todo: Todo) {
+                val intent = Intent(this@TodoActivity, EditTodoActivity::class.java)
+                intent.putExtra("todo_item_id", todo.id)
+                startActivity(intent)
+            }
+
+            override fun onTodoItemDelete(todo: Todo) {
+                val builder = AlertDialog.Builder(this@TodoActivity)
+
+                builder.setTitle("Konfirmasi Hapus Data")
+                builder.setMessage("Really? Mau hapus ini? Mikir dulu deh")
+
+                builder.setPositiveButton("Iya lah") { dialog, _ ->
+                    lifecycleScope.launch {
+                        try {
+                            todoUseCase.deleteTodo(todo.id)
+                            inisiasiData()
+                        }catch (exc : Exception) {
+                            displayErrorMessage(exc.message)
+                        }
+                    }
+                }
+
+                builder.setNegativeButton("Jangan Dulu Deh") { dialog, _ ->
+                    dialog.dismiss()
+                }
+
+                val dialog = builder.create()
+                dialog.show()
+            }
+
+        })
         activityBinding.container.adapter = todoAdapter
         activityBinding.container.layoutManager = LinearLayoutManager(this)
     }
@@ -91,5 +125,9 @@ class TodoActivity : AppCompatActivity() {
         val intent = Intent(this@TodoActivity, CreateTodoActivity::class.java)
         startActivity(intent)
         finish()
+    }
+
+    fun displayErrorMessage(message: String?){
+        Toast.makeText(this@TodoActivity, message, Toast.LENGTH_SHORT).show()
     }
 }

@@ -11,12 +11,8 @@ class TodoUseCase {
 
     suspend fun getTodo(): List<Todo> {
         val data = db.collection("todo")
-            .get()
+            .set()
             .await()
-
-        if (data.isEmpty) {
-            throw Exception("Data di servermu ga ada")
-        }
 
         return data.documents.map {
             Todo (
@@ -24,6 +20,48 @@ class TodoUseCase {
                 title = it.get("title").toString(),
                 description = it.get("description").toString(),
             )
+        }
+    }
+
+    suspend fun getTodo(id: String): Todo? {
+        val data = db.collection("todo")
+            .document(id)
+            .get()
+            .await()
+
+        if (!data.exists()) return null
+
+        return Todo(
+            id = data.id,
+            title = data.get("title").toString(),
+            description = data.get("description").toString()
+        )
+    }
+
+    suspend fun deleteTodo(id: String) {
+        try {
+            db.collection("todo")
+                .document(id)
+                .delete()
+                .await()
+        } catch (exc: Exception) {
+            throw Exception("Gagal menghapus data : ${exc.message}")
+        }
+    }
+    suspend fun updateTodo(todo: Todo) {
+        try {
+            val payload = hashMapOf(
+                "title" to todo.title,
+                "description" to todo.description
+            )
+
+           db.collection("todo")
+                .document(todo.id)
+                .set(payload)
+                .await()
+
+        }catch (exc: Exception) {
+            throw Exception("Gagal menghapus data : ${exc.message}")
         }
     }
 
@@ -43,5 +81,4 @@ class TodoUseCase {
         }
     }
 
-    companion object
 }
