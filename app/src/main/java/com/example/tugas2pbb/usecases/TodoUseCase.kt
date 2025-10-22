@@ -11,7 +11,7 @@ class TodoUseCase {
 
     suspend fun getTodo(): List<Todo> {
         val data = db.collection("todo")
-            .set()
+            .get()
             .await()
 
         return data.documents.map {

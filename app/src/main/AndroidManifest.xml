@@ -12,6 +12,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Tugas2PBB"
         tools:targetApi="31">
+
+        <activity android:name=".TodoActivity" />
+
+        <activity android:name=".EditTodoActivity" />
+
+        <activity android:name=".CreateTodoActivity" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true">

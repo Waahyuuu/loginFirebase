@@ -62,8 +62,11 @@ class EditTodoActivity : AppCompatActivity() {
                 } catch (exc: Exception) {
                     displayMessage("gagal diperbaharui data : ${exc.message}")
                 }
-
             }
+        }
+
+        binding.btnKembali.setOnClickListener {
+            back()
         }
     }
 

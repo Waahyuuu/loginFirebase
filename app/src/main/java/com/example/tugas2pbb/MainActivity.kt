@@ -1,5 +1,6 @@
 package com.example.tugas2pbb
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
@@ -58,13 +59,6 @@ class MainActivity : AppCompatActivity() {
                 loginByGoogle(request)
             }
         }
-
-        // Tombol logout
-        binding.btnLogout.setOnClickListener {
-            auth.signOut()
-            Toast.makeText(this, "Logout berhasil", Toast.LENGTH_SHORT).show()
-            updateUI(null)
-        }
     }
 
     private fun prepareRequest(): GetCredentialRequest {
@@ -106,30 +100,25 @@ class MainActivity : AppCompatActivity() {
         auth.signInWithCredential(credential)
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    val user = auth.currentUser
-                    Toast.makeText(this, "Login berhasil: ${user?.displayName}", Toast.LENGTH_LONG).show()
-                    updateUI(user)
+                    Toast.makeText(this, "Login berhasil", Toast.LENGTH_LONG).show()
+                    toTodoListPage()
                 } else {
                     Toast.makeText(this, "Login gagal", Toast.LENGTH_LONG).show()
-                    updateUI(null)
                 }
             }
     }
 
     private fun checkCurrentUser() {
         val currentUser = auth.currentUser
-        updateUI(currentUser)
+        if (currentUser != null) {
+            Log.d("GoogleLogin", "User sudah login: ${currentUser.displayName}")
+            toTodoListPage()
+        }
     }
 
-    private fun updateUI(user: com.google.firebase.auth.FirebaseUser?) {
-        if (user != null) {
-            binding.tvStatus.text = "Halo, ${user.displayName}"
-            binding.btnLogout.isEnabled = true
-            binding.btnGoogle.isEnabled = false
-        } else {
-            binding.tvStatus.text = "Belum login"
-            binding.btnLogout.isEnabled = false
-            binding.btnGoogle.isEnabled = true
-        }
+    private fun toTodoListPage() {
+        val intent = Intent(this, TodoActivity::class.java)
+        startActivity(intent)
+        finish()
     }
 }
