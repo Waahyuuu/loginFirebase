@@ -19,6 +19,8 @@
 
         <activity android:name=".CreateTodoActivity" />
 
+        <activity android:name=".GaleriActivity" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true">

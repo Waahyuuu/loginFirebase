@@ -19,7 +19,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.launch
 
-
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
@@ -32,38 +31,41 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Inisialisasi CredentialManager & FirebaseAuth
+        // Inisialisasi
         credentialManager = CredentialManager.create(this)
         auth = FirebaseAuth.getInstance()
 
-        // Agar layout tidak ketimpa status bar/navigation bar
+        // Handle insets
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
-        // Daftar event tombol
+        // Event button
         registerEvents()
 
-        // Cek user login saat pertama buka
+        // Cek user login
         checkCurrentUser()
     }
 
     private fun registerEvents() {
-        // Tombol login Google
         binding.btnGoogle.setOnClickListener {
             Log.d("GoogleLogin", "Button clicked")
             lifecycleScope.launch {
-                val request = prepareRequest()
-                loginByGoogle(request)
+                try {
+                    val request = prepareRequest()
+                    loginByGoogle(request)
+                } catch (e: Exception) {
+                    Toast.makeText(this@MainActivity, "Gagal mempersiapkan login", Toast.LENGTH_SHORT).show()
+                    Log.e("GoogleLogin", "Error prepareRequest", e)
+                }
             }
         }
     }
 
     private fun prepareRequest(): GetCredentialRequest {
         val serverClientId = "184622800143-pcvvuhi0cuaha7l2lit6a9ubaev33u2i.apps.googleusercontent.com"
-
 
         val googleOption = GetGoogleIdOption.Builder()
             .setFilterByAuthorizedAccounts(false)
@@ -85,13 +87,18 @@ class MainActivity : AppCompatActivity() {
             val credential = result.credential
             val idToken = GoogleIdTokenCredential.createFrom(credential.data).idToken
 
-            firebaseLogin(idToken)
+            if (idToken != null) {
+                firebaseLogin(idToken)
+            } else {
+                Toast.makeText(this, "ID Token tidak ditemukan", Toast.LENGTH_SHORT).show()
+            }
 
         } catch (exc: NoCredentialException) {
             Toast.makeText(this, "Tidak ada akun Google ditemukan", Toast.LENGTH_LONG).show()
+            Log.w("GoogleLogin", "No Google accounts found", exc)
         } catch (exc: Exception) {
             Toast.makeText(this, "Login gagal: ${exc.message}", Toast.LENGTH_LONG).show()
-            Log.e("GoogleLogin", "Error: ", exc)
+            Log.e("GoogleLogin", "Error during Google login", exc)
         }
     }
 
@@ -104,6 +111,7 @@ class MainActivity : AppCompatActivity() {
                     toTodoListPage()
                 } else {
                     Toast.makeText(this, "Login gagal", Toast.LENGTH_LONG).show()
+                    Log.e("GoogleLogin", "Firebase login failed", task.exception)
                 }
             }
     }
