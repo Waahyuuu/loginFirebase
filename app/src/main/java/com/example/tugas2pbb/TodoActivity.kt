@@ -17,6 +17,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
 import com.example.tugas2pbb.adapter.Todoadapter
 import com.example.tugas2pbb.databinding.ActivityTodoBinding
 import com.example.tugas2pbb.entity.Todo
@@ -40,41 +41,32 @@ class TodoActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
         setContentView(activityBinding.root)
 
-        // DrawerLayout dari layout
         drawerLayout = findViewById(R.id.drawerLayout)
         val navView: NavigationView = findViewById(R.id.navigationView)
 
-        // Atur window inset (biar padding aman)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
-        // Tombol menu (☰) untuk buka drawer
         val menuButton = activityBinding.toolbar.findViewById<ImageView>(R.id.menuButton)
         menuButton.setOnClickListener {
             drawerLayout.openDrawer(GravityCompat.START)
         }
 
-        // Tombol Logout di toolbar
         activityBinding.btnLogout.setOnClickListener {
             logoutUser()
         }
 
-        // Isi header drawer dengan data user
         setupDrawerHeader(navView)
 
-        // Event click di menu drawer
         setupDrawerMenu(navView)
 
-        // RecyclerView
         setupRecyclerView()
 
-        // Ambil data todo
         inisiasiData()
 
-        // Tombol tambah
         registerEvents()
     }
 
@@ -161,10 +153,20 @@ class TodoActivity : AppCompatActivity() {
         val headerView = navView.getHeaderView(0)
         val nameView = headerView.findViewById<TextView>(R.id.profile_name)
         val emailView = headerView.findViewById<TextView>(R.id.profile_email)
+        val imageView = headerView.findViewById<ImageView>(R.id.header_image)
 
         val user = auth.currentUser
+
         nameView.text = user?.displayName ?: "Pengguna"
         emailView.text = user?.email ?: "email@tidak.ada"
+
+        // load foto profile
+        user?.photoUrl?.let { url ->
+            Glide.with(this)
+                .load(url)
+                .circleCrop()
+                .into(imageView)
+        }
     }
 
     private fun setupDrawerMenu(navView: NavigationView) {
@@ -173,7 +175,7 @@ class TodoActivity : AppCompatActivity() {
                 R.id.nav_home -> {
                     val intent = Intent(this, TodoActivity::class.java)
                     startActivity(intent)
-                    finish() // optional: agar tidak menumpuk activity
+                    finish()
                 }
                 R.id.nav_galeri -> {
                     val intent = Intent(this, GaleriActivity::class.java)

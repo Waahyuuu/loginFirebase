@@ -7,17 +7,13 @@
     android:padding="16dp"
     android:background="?attr/colorPrimary">
 
-    <!-- Foto atau ikon user -->
     <ImageView
         android:id="@+id/header_image"
         android:layout_width="72dp"
         android:layout_height="72dp"
         android:layout_gravity="center_horizontal"
-        android:contentDescription="User Photo"
-        android:background="@drawable/circle_background"
-        android:padding="8dp" />
+        android:contentDescription="User Photo"/>
 
-    <!-- Nama pengguna -->
     <TextView
         android:id="@+id/profile_name"
         android:layout_width="match_parent"
@@ -29,7 +25,6 @@
         android:gravity="center"
         android:layout_marginTop="8dp" />
 
-    <!-- Email pengguna -->
     <TextView
         android:id="@+id/profile_email"
         android:layout_width="match_parent"

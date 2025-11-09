@@ -1,5 +1,6 @@
 <resources>
-    <string name="app_name">Tugas2PBB</string>
+    <string name="app_name">DocsYuu</string>
     <string name="navigation_drawer_open">Buka menu</string>
     <string name="navigation_drawer_close">Tutup menu</string>
+    <string name="image">Gambar</string>
 </resources>

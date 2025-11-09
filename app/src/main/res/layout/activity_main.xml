@@ -5,13 +5,33 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:padding="24dp"
+    android:background="@color/white">
 
-    <Button
-        android:id="@+id/btnGoogle"
+    <ImageView
+        android:id="@+id/appLogo"
+        android:layout_width="200dp"
+        android:layout_height="100dp"
+        android:src="@drawable/img"
+        android:layout_marginBottom="30dp" />
+
+    <TextView
+        android:id="@+id/tvgoggle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Login dengan Google"
-        android:layout_marginBottom="16dp" />
+        android:text="Login dengan :"
+        android:textSize="12sp"
+        android:textColor="@android:color/black"
+        android:layout_marginBottom="10dp" />
 
+    <ImageView
+        android:id="@+id/btnGoogle"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:src="@drawable/ic_google"
+        android:contentDescription="Login Google"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="@drawable/round_blur"
+        android:padding="10dp" />
 </LinearLayout>
