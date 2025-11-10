@@ -35,7 +35,6 @@ class GaleriActivity : AppCompatActivity() {
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
     ){ result ->
         if(result.resultCode == Activity.RESULT_OK){
-
             val deletedId = result.data?.getStringExtra("deleted_id")
             if(deletedId != null){
                 imageList.removeAll { it["id"] == deletedId }
@@ -51,7 +50,6 @@ class GaleriActivity : AppCompatActivity() {
                 }
                 adapter.notifyDataSetChanged()
             }
-
         }
     }
 
@@ -62,14 +60,14 @@ class GaleriActivity : AppCompatActivity() {
         private const val CAMERA_PERMISSION_CODE = 200
     }
 
-    private val db = FirebaseFirestore.getInstance()
+    private lateinit var auth: FirebaseAuth
+    private lateinit var db: FirebaseFirestore
     private lateinit var adapter: GaleriAdapter
     private val imageList = mutableListOf<Map<String, String>>()
 
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var navigationView: NavigationView
     private lateinit var menuButton: ImageView
-    private lateinit var auth: FirebaseAuth
     private lateinit var recyclerView: RecyclerView
     private lateinit var btnTambah: Button
     private lateinit var progressBar: ProgressBar
@@ -81,6 +79,14 @@ class GaleriActivity : AppCompatActivity() {
         setContentView(R.layout.activity_galeri)
 
         auth = FirebaseAuth.getInstance()
+        db = FirebaseFirestore.getInstance()
+
+        if (auth.currentUser == null) {
+            Toast.makeText(this, "Silakan login terlebih dahulu", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+
         drawerLayout = findViewById(R.id.drawerLayout)
         navigationView = findViewById(R.id.navigationView)
         menuButton = findViewById(R.id.menuButton)
@@ -94,9 +100,9 @@ class GaleriActivity : AppCompatActivity() {
         adapter = GaleriAdapter(
             this,
             imageList,
-            onClick = { data -> openDetail(data) },           // single click
-            onDoubleClick = { data -> openEditDialog(data) }, // double click → edit
-            onLongClick = { data -> confirmDelete(data) }     // long click → delete
+            onClick = { data -> openDetail(data) },
+            onDoubleClick = { data -> openEditDialog(data) },
+            onLongClick = { data -> confirmDelete(data) }
         )
         recyclerView.adapter = adapter
 
@@ -117,10 +123,9 @@ class GaleriActivity : AppCompatActivity() {
             }.show()
     }
 
-    private fun hasCameraPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
+    private fun hasCameraPermission() =
+        ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) ==
                 PackageManager.PERMISSION_GRANTED
-    }
 
     private fun requestCameraPermission() {
         ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), CAMERA_PERMISSION_CODE)
@@ -135,14 +140,12 @@ class GaleriActivity : AppCompatActivity() {
         try {
             val imageFile = File.createTempFile("IMG_", ".jpg", cacheDir)
             photoUri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", imageFile)
-
             val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
             startActivityForResult(intent, CAPTURE_IMAGE)
         } catch (e: Exception) {
             Toast.makeText(this, "Kamera gagal dibuka: ${e.message}", Toast.LENGTH_SHORT).show()
-            Log.e(TAG, "Error membuka kamera", e)
         }
     }
 
@@ -155,7 +158,6 @@ class GaleriActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode != Activity.RESULT_OK) return
-
         when (requestCode) {
             PICK_IMAGE -> data?.data?.let { uri -> showTitleDialog(uri) }
             CAPTURE_IMAGE -> photoUri?.let { uri -> showTitleDialog(uri) }
@@ -202,7 +204,9 @@ class GaleriActivity : AppCompatActivity() {
                 "tanggalUpload" to Timestamp.now()
             )
 
-            db.collection("image").add(imageData)
+            val userId = auth.currentUser!!.uid
+            db.collection("users").document(userId).collection("image")
+                .add(imageData)
                 .addOnSuccessListener {
                     Toast.makeText(this, "Gambar tersimpan", Toast.LENGTH_SHORT).show()
                     loadImagesFromFirestore()
@@ -220,7 +224,8 @@ class GaleriActivity : AppCompatActivity() {
 
     private fun loadImagesFromFirestore() {
         progressBar.visibility = android.view.View.VISIBLE
-        db.collection("image")
+        val userId = auth.currentUser!!.uid
+        db.collection("users").document(userId).collection("image")
             .orderBy("tanggalUpload", com.google.firebase.firestore.Query.Direction.DESCENDING)
             .get()
             .addOnSuccessListener { result ->
@@ -261,14 +266,12 @@ class GaleriActivity : AppCompatActivity() {
             .setPositiveButton("Simpan") { _, _ ->
                 val newTitle = input.text.toString().ifEmpty { "Tanpa Judul" }
                 val id = data["id"]!!
+                val userId = auth.currentUser!!.uid
 
-                db.collection("image").document(id)
-                    .update(
-                        mapOf(
-                            "judul" to newTitle,
-                            "tanggalUpload" to Timestamp.now()
-                        )
-                    ).addOnSuccessListener {
+                db.collection("users").document(userId).collection("image")
+                    .document(id)
+                    .update("judul", newTitle, "tanggalUpload", Timestamp.now())
+                    .addOnSuccessListener {
                         Toast.makeText(this, "Berhasil diupdate", Toast.LENGTH_SHORT).show()
                         loadImagesFromFirestore()
                     }
@@ -284,15 +287,15 @@ class GaleriActivity : AppCompatActivity() {
             .setPositiveButton("Hapus") { _, _ ->
                 val id = data["id"]!!
                 val namaFile = data["namaFile"]
+                val userId = auth.currentUser!!.uid
 
-                db.collection("image").document(id).delete()
+                db.collection("users").document(userId).collection("image").document(id).delete()
                     .addOnSuccessListener {
                         try {
                             val file = FileUtils.getImageFile(this, namaFile!!)
                             if (file.exists()) file.delete()
                         } catch (_: Exception) {}
 
-                        // remove dari recycler list langsung
                         imageList.removeAll { it["id"] == id }
                         adapter.notifyDataSetChanged()
 
@@ -315,12 +318,8 @@ class GaleriActivity : AppCompatActivity() {
             nameView.text = user?.displayName ?: "Pengguna"
             emailView.text = user?.email ?: "email@tidak.ada"
 
-            // === load foto profil google ===
             user?.photoUrl?.let { url ->
-                Glide.with(this)
-                    .load(url)
-                    .circleCrop()
-                    .into(imageView)
+                Glide.with(this).load(url).circleCrop().into(imageView)
             }
 
             navigationView.setNavigationItemSelectedListener { menuItem ->
@@ -351,7 +350,7 @@ class GaleriActivity : AppCompatActivity() {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 openCamera()
             } else {
-                Toast.makeText(this, "Izin kamera diperlukan untuk mengambil gambar", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Izin kamera diperlukan", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -362,7 +361,6 @@ class GaleriActivity : AppCompatActivity() {
         intent.putExtra("namaFile", data["namaFile"])
         intent.putExtra("judul", data["judul"])
         intent.putExtra("tanggalUpload", data["tanggalUpload"])
-
         detailLauncher.launch(intent)
     }
 }

@@ -21,47 +21,60 @@ class GaleriAdapter(
     private val onLongClick: (Map<String, String>) -> Unit
 ) : RecyclerView.Adapter<GaleriAdapter.ViewHolder>() {
 
-    companion object { private const val TAG = "GaleriAdapter" }
+    companion object {
+        private const val TAG = "GaleriAdapter"
+        private const val DOUBLE_CLICK_DELAY = 250L
+    }
 
     inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val imageView: ImageView = view.findViewById(R.id.imageView)
         val textTitle: TextView = view.findViewById(R.id.textTitle)
         val textDate: TextView = view.findViewById(R.id.textDate)
-        var lastClickTime = 0L
+        var lastClickTime: Long = 0L
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val v = LayoutInflater.from(parent.context).inflate(R.layout.item_galeri, parent, false)
-        return ViewHolder(v)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.item_galeri, parent, false)
+        return ViewHolder(view)
     }
 
-    override fun getItemCount() = imageList.size
+    override fun getItemCount(): Int = imageList.size
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val data = imageList[position]
-
         val namaFile = data["namaFile"]
-        val judul = data["judul"] ?: "Tanpa Judul"
-        val tanggal = data["tanggalUpload"] ?: "-"
+        val judul = data["judul"].orEmpty().ifBlank { "Tanpa Judul" }
+        val tanggal = data["tanggalUpload"].orEmpty().ifBlank { "-" }
 
         holder.textTitle.text = judul
         holder.textDate.text = tanggal
 
         try {
             if (!namaFile.isNullOrEmpty()) {
-                val file = FileUtils.getImageFile(context, namaFile)
+                val file: File = FileUtils.getImageFile(context, namaFile)
                 if (file.exists()) {
-                    holder.imageView.setImageBitmap(BitmapFactory.decodeFile(file.absolutePath))
-                } else holder.imageView.setImageResource(R.drawable.ic_image_placeholder)
-            } else holder.imageView.setImageResource(R.drawable.ic_image_placeholder)
+                    val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+                    holder.imageView.setImageBitmap(bitmap)
+                } else {
+                    holder.imageView.setImageResource(R.drawable.ic_image_placeholder)
+                    Log.w(TAG, "File tidak ditemukan: $namaFile")
+                }
+            } else {
+                holder.imageView.setImageResource(R.drawable.ic_image_placeholder)
+            }
         } catch (e: Exception) {
-            Log.e(TAG, "error $e")
+            Log.e(TAG, "Error load gambar: ${e.message}")
             holder.imageView.setImageResource(R.drawable.ic_image_placeholder)
         }
 
         holder.itemView.setOnClickListener {
             val now = System.currentTimeMillis()
-            if (now - holder.lastClickTime < 250) onDoubleClick(data) else onClick(data)
+            if (now - holder.lastClickTime < DOUBLE_CLICK_DELAY) {
+                onDoubleClick(data)
+            } else {
+                onClick(data)
+            }
             holder.lastClickTime = now
         }
 

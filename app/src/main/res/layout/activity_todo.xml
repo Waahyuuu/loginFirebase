@@ -5,7 +5,8 @@
     android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".TodoActivity">
+    tools:context=".TodoActivity"
+    >
 
     <RelativeLayout
         android:id="@+id/main"
@@ -16,7 +17,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="?attr/colorPrimary"
+            android:background="#0095FF"
             android:minHeight="?attr/actionBarSize"
             android:theme="?attr/actionBarTheme"
             android:paddingHorizontal="10dp">
@@ -75,6 +76,7 @@
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
             android:src="@drawable/baseline_add_24"
+            android:backgroundTint="#71C6FA"
             android:contentDescription="Tambah todo baru" />
 
     </RelativeLayout>

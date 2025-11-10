@@ -3,12 +3,12 @@ package com.example.tugas2pbb
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import android.view.Gravity
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
@@ -27,47 +27,57 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 class TodoActivity : AppCompatActivity() {
-    private lateinit var activityBinding: ActivityTodoBinding
+    private lateinit var binding: ActivityTodoBinding
     private lateinit var todoAdapter: Todoadapter
     private lateinit var todoUseCase: TodoUseCase
     private lateinit var auth: FirebaseAuth
     private lateinit var drawerLayout: DrawerLayout
 
+    // 🔹 Launcher untuk menerima hasil dari CreateTodoActivity
+    private val createTodoLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            Log.d("TodoDebug", "Result OK diterima, memuat ulang data...")
+            loadTodoData()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        activityBinding = ActivityTodoBinding.inflate(layoutInflater)
-        todoUseCase = TodoUseCase()
+
+        binding = ActivityTodoBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
         auth = FirebaseAuth.getInstance()
-        setContentView(activityBinding.root)
+        todoUseCase = TodoUseCase()
+        drawerLayout = binding.drawerLayout
+        val navView: NavigationView = binding.navigationView
 
-        drawerLayout = findViewById(R.id.drawerLayout)
-        val navView: NavigationView = findViewById(R.id.navigationView)
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
-        val menuButton = activityBinding.toolbar.findViewById<ImageView>(R.id.menuButton)
+        val menuButton = binding.toolbar.findViewById<ImageView>(R.id.menuButton)
         menuButton.setOnClickListener {
             drawerLayout.openDrawer(GravityCompat.START)
         }
 
-        activityBinding.btnLogout.setOnClickListener {
+        binding.btnLogout.setOnClickListener {
             logoutUser()
         }
 
         setupDrawerHeader(navView)
-
         setupDrawerMenu(navView)
-
         setupRecyclerView()
+        loadTodoData()
 
-        inisiasiData()
-
-        registerEvents()
+        binding.tombolTambah.setOnClickListener {
+            goToCreateTodo()
+        }
     }
 
     override fun onStart() {
@@ -76,12 +86,6 @@ class TodoActivity : AppCompatActivity() {
         if (currentUser == null) {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
-        }
-    }
-
-    private fun registerEvents() {
-        activityBinding.tombolTambah.setOnClickListener {
-            toCreateTodoPage()
         }
     }
 
@@ -94,36 +98,39 @@ class TodoActivity : AppCompatActivity() {
             }
 
             override fun onTodoItemDelete(todo: Todo) {
-                val builder = AlertDialog.Builder(this@TodoActivity)
-                builder.setTitle("Konfirmasi Hapus Data")
-                builder.setMessage("Yakin ingin menghapus data ini?")
-                builder.setPositiveButton("Ya") { dialog, _ ->
-                    lifecycleScope.launch {
-                        try {
-                            todoUseCase.deleteTodo(todo.id)
-                            inisiasiData()
-                        } catch (exc: Exception) {
-                            displayErrorMessage(exc.message)
+                AlertDialog.Builder(this@TodoActivity)
+                    .setTitle("Konfirmasi Hapus Data")
+                    .setMessage("Yakin ingin menghapus data ini?")
+                    .setPositiveButton("Ya") { dialog, _ ->
+                        lifecycleScope.launch {
+                            try {
+                                todoUseCase.deleteTodo(todo.id)
+                                loadTodoData()
+                                Toast.makeText(this@TodoActivity, "Data berhasil dihapus", Toast.LENGTH_SHORT).show()
+                            } catch (exc: Exception) {
+                                displayErrorMessage(exc.message)
+                            }
                         }
                     }
-                }
-                builder.setNegativeButton("Batal") { dialog, _ -> dialog.dismiss() }
-                builder.create().show()
+                    .setNegativeButton("Batal") { dialog, _ -> dialog.dismiss() }
+                    .show()
             }
         })
-        activityBinding.container.adapter = todoAdapter
-        activityBinding.container.layoutManager = LinearLayoutManager(this)
+        binding.container.apply {
+            adapter = todoAdapter
+            layoutManager = LinearLayoutManager(this@TodoActivity)
+        }
     }
 
-    private fun inisiasiData() {
-        activityBinding.container.visibility = View.GONE
-        activityBinding.loading.visibility = View.VISIBLE
+    private fun loadTodoData() {
+        binding.container.visibility = View.GONE
+        binding.loading.visibility = View.VISIBLE
 
         lifecycleScope.launch {
             try {
                 val data = todoUseCase.getTodo()
-                activityBinding.container.visibility = View.VISIBLE
-                activityBinding.loading.visibility = View.GONE
+                binding.loading.visibility = View.GONE
+                binding.container.visibility = View.VISIBLE
                 todoAdapter.updateDataSet(data)
             } catch (e: Exception) {
                 displayErrorMessage(e.message)
@@ -131,15 +138,13 @@ class TodoActivity : AppCompatActivity() {
         }
     }
 
-    private fun toCreateTodoPage() {
-        Log.d("TodoDebug", "Pindah ke CreateTodoActivity()")
+    private fun goToCreateTodo() {
         val intent = Intent(this@TodoActivity, CreateTodoActivity::class.java)
-        startActivity(intent)
-        finish()
+        createTodoLauncher.launch(intent)
     }
 
     private fun displayErrorMessage(message: String?) {
-        Toast.makeText(this@TodoActivity, message ?: "Terjadi kesalahan", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, message ?: "Terjadi kesalahan", Toast.LENGTH_SHORT).show()
     }
 
     private fun logoutUser() {
@@ -156,11 +161,9 @@ class TodoActivity : AppCompatActivity() {
         val imageView = headerView.findViewById<ImageView>(R.id.header_image)
 
         val user = auth.currentUser
-
         nameView.text = user?.displayName ?: "Pengguna"
         emailView.text = user?.email ?: "email@tidak.ada"
 
-        // load foto profile
         user?.photoUrl?.let { url ->
             Glide.with(this)
                 .load(url)
@@ -173,13 +176,10 @@ class TodoActivity : AppCompatActivity() {
         navView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.nav_home -> {
-                    val intent = Intent(this, TodoActivity::class.java)
-                    startActivity(intent)
-                    finish()
+                    drawerLayout.closeDrawer(GravityCompat.START)
                 }
                 R.id.nav_galeri -> {
-                    val intent = Intent(this, GaleriActivity::class.java)
-                    startActivity(intent)
+                    startActivity(Intent(this, GaleriActivity::class.java))
                 }
             }
             drawerLayout.closeDrawer(GravityCompat.START)

@@ -5,7 +5,7 @@
     android:orientation="vertical"
     android:gravity="bottom"
     android:padding="16dp"
-    android:background="?attr/colorPrimary">
+    android:background="#0095FF">
 
     <ImageView
         android:id="@+id/header_image"

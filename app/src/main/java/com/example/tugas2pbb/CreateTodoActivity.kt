@@ -15,19 +15,19 @@ import kotlinx.coroutines.launch
 
 class CreateTodoActivity : AppCompatActivity() {
 
-    private lateinit var activityBinding: ActivityCreateTodoBinding
+    private lateinit var binding: ActivityCreateTodoBinding
     private lateinit var todoUseCase: TodoUseCase
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        activityBinding = ActivityCreateTodoBinding.inflate(layoutInflater)
-        setContentView(activityBinding.root)
+        binding = ActivityCreateTodoBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         todoUseCase = TodoUseCase()
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
@@ -37,21 +37,17 @@ class CreateTodoActivity : AppCompatActivity() {
     }
 
     private fun registerEvents() {
-
-        activityBinding.btnTambah.setOnClickListener {
-            saveTodoToFireStore()
+        binding.btnTambah.setOnClickListener {
+            saveTodoToFirestore()
         }
-
-        activityBinding.btnBack.setOnClickListener {
-            val intent = Intent(this, TodoActivity::class.java)
-            startActivity(intent)
+        binding.btnBack.setOnClickListener {
             finish()
         }
     }
 
-    private fun saveTodoToFireStore() {
-        val title = activityBinding.etTitle.text.toString().trim()
-        val description = activityBinding.etDescription.text.toString().trim()
+    private fun saveTodoToFirestore() {
+        val title = binding.etTitle.text.toString().trim()
+        val description = binding.etDescription.text.toString().trim()
 
         if (title.isEmpty() || description.isEmpty()) {
             Toast.makeText(this, "Judul dan deskripsi tidak boleh kosong", Toast.LENGTH_SHORT).show()
@@ -69,8 +65,10 @@ class CreateTodoActivity : AppCompatActivity() {
                 todoUseCase.createTodo(todo)
                 Toast.makeText(this@CreateTodoActivity, "Sukses menambahkan data", Toast.LENGTH_SHORT).show()
 
-                val intent = Intent(this@CreateTodoActivity, TodoActivity::class.java)
-                startActivity(intent)
+                val resultIntent = Intent().apply {
+                    putExtra("new_todo_title", title)
+                }
+                setResult(RESULT_OK, resultIntent)
                 finish()
 
             } catch (exc: Exception) {

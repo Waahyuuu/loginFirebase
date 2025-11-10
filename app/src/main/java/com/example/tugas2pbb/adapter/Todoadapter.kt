@@ -7,65 +7,53 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.tugas2pbb.databinding.ItemTodoBinding
 import com.example.tugas2pbb.entity.Todo
 
-class Todoadapter (
+class Todoadapter(
     private val dataset: MutableList<Todo>,
-    private val todoItemEvents: Todoadapter.TodoItemEvents
-): RecyclerView.Adapter<Todoadapter.CustomViewHolder>() {
+    private val todoItemEvents: TodoItemEvents
+) : RecyclerView.Adapter<Todoadapter.ViewHolder>() {
 
     interface TodoItemEvents {
-        fun onTodoItemEdit(todo: Todo): Unit
-        fun onTodoItemDelete(todo: Todo): Unit
+        fun onTodoItemEdit(todo: Todo)
+        fun onTodoItemDelete(todo: Todo)
     }
 
-    override fun onCreateViewHolder(
-        parent: ViewGroup,
-        viewType: Int
-    ): CustomViewHolder {
+    inner class ViewHolder(private val binding: ItemTodoBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(todo: Todo) {
+            binding.title.text = todo.title
+            binding.description.text = todo.description
+
+            binding.root.setOnClickListener {
+                todoItemEvents.onTodoItemEdit(todo)
+            }
+
+            binding.root.setOnLongClickListener {
+                todoItemEvents.onTodoItemDelete(todo)
+                true
+            }
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemTodoBinding.inflate(
             LayoutInflater.from(parent.context),
             parent,
             false
         )
-        return CustomViewHolder(binding)
+        return ViewHolder(binding)
     }
 
-    override fun onBindViewHolder(
-        holder: CustomViewHolder,
-        index: Int
-    ) {
-        val data = dataset[index]
-        holder.bindData(data)
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        holder.bind(dataset[position])
     }
 
-    override fun getItemCount(): Int {
-        return dataset.size
-    }
-
-    inner class CustomViewHolder(
-        val view: ItemTodoBinding
-    ): RecyclerView.ViewHolder(view.root) {
-
-        fun bindData(data: Todo){
-            view.title.text = data.title
-            view.description.text = data.description
-
-            view.root.setOnClickListener {
-                todoItemEvents.onTodoItemEdit(data)
-            }
-
-            view.root.setOnLongClickListener {
-                todoItemEvents.onTodoItemDelete(data)
-                true
-            }
-        }
-
-    }
+    override fun getItemCount(): Int = dataset.size
 
     @SuppressLint("NotifyDataSetChanged")
-    fun updateDataSet(data: List<Todo>){
+    fun updateDataSet(newData: List<Todo>) {
         dataset.clear()
-        dataset.addAll(data)
+        dataset.addAll(newData)
         notifyDataSetChanged()
     }
-
 }

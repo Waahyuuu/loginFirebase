@@ -1,7 +1,6 @@
 package com.example.tugas2pbb
 
 import android.content.Intent
-import android.nfc.NdefMessage
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -9,23 +8,22 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
-import com.example.tugas2pbb.databinding.ActivityCreateTodoBinding
 import com.example.tugas2pbb.databinding.ActivityEditTodoBinding
 import com.example.tugas2pbb.entity.Todo
 import com.example.tugas2pbb.usecases.TodoUseCase
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
 
 class EditTodoActivity : AppCompatActivity() {
     private lateinit var binding: ActivityEditTodoBinding
     private lateinit var todoItemId: String
     private lateinit var todoUseCase: TodoUseCase
+    private val auth = FirebaseAuth.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
         binding = ActivityEditTodoBinding.inflate(layoutInflater)
-
         setContentView(binding.root)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -34,7 +32,15 @@ class EditTodoActivity : AppCompatActivity() {
             insets
         }
 
-        todoItemId = intent.getStringExtra("todo_item_id").toString()
+        if (auth.currentUser == null) {
+            Toast.makeText(this, "Silakan login terlebih dahulu", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+            return
+        }
+
+        todoItemId = intent.getStringExtra("todo_item_id") ?: ""
+
         todoUseCase = TodoUseCase()
         registerEvents()
     }
@@ -44,11 +50,17 @@ class EditTodoActivity : AppCompatActivity() {
         loadData()
     }
 
-    fun registerEvents() {
+    private fun registerEvents() {
         binding.btnEdit.setOnClickListener {
+            val title = binding.etTitle.text.toString().trim()
+            val description = binding.etDescription.text.toString().trim()
+
+            if (title.isEmpty() || description.isEmpty()) {
+                displayMessage("Judul dan deskripsi tidak boleh kosong")
+                return@setOnClickListener
+            }
+
             lifecycleScope.launch {
-                val title = binding.etTitle.text.toString()
-                val description = binding.etDescription.text.toString()
                 val payload = Todo(
                     id = todoItemId,
                     title = title,
@@ -57,10 +69,10 @@ class EditTodoActivity : AppCompatActivity() {
 
                 try {
                     todoUseCase.updateTodo(payload)
-                    displayMessage("berhasil diperbaharui")
+                    displayMessage("Data berhasil diperbarui ✅")
                     back()
                 } catch (exc: Exception) {
-                    displayMessage("gagal diperbaharui data : ${exc.message}")
+                    displayMessage("Gagal memperbarui data: ${exc.message}")
                 }
             }
         }
@@ -70,26 +82,32 @@ class EditTodoActivity : AppCompatActivity() {
         }
     }
 
-    fun loadData() {
+    private fun loadData() {
         lifecycleScope.launch {
-            val data = todoUseCase.getTodo(todoItemId)
-            if (data == null) {
-                displayMessage("Data yang akan mau diedit gak ada")
+            try {
+                val data = todoUseCase.getTodo(todoItemId)
+                if (data == null) {
+                    displayMessage("Data yang akan diedit tidak ditemukan")
+                    back()
+                    return@launch
+                }
+
+                binding.etTitle.setText(data.title)
+                binding.etDescription.setText(data.description)
+            } catch (exc: Exception) {
+                displayMessage("Gagal memuat data: ${exc.message}")
                 back()
             }
-
-            binding.etTitle.setText(data?.title)
-            binding.etDescription.setText(data?.description)
         }
     }
 
-    fun back() {
+    private fun back() {
         val intent = Intent(this, TodoActivity::class.java)
         startActivity(intent)
         finish()
     }
 
-    fun displayMessage(message: String) {
+    private fun displayMessage(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }
