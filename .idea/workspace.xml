@@ -116,23 +116,7 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="330c252d-5779-4fdb-bb6b-51a80f56278d" name="Changes" comment="Tugas Aplikasi 98%">
-      <change beforePath="$PROJECT_DIR$/.idea/assetWizardSettings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/assetWizardSettings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/tugas2pbb/CreateTodoActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/tugas2pbb/CreateTodoActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/tugas2pbb/DetailImageActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/tugas2pbb/DetailImageActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/tugas2pbb/EditTodoActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/tugas2pbb/EditTodoActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/tugas2pbb/GaleriActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/tugas2pbb/GaleriActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/tugas2pbb/TodoActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/tugas2pbb/TodoActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/tugas2pbb/adapter/GaleriAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/tugas2pbb/adapter/GaleriAdapter.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/tugas2pbb/adapter/Todoadapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/tugas2pbb/adapter/Todoadapter.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/tugas2pbb/usecases/TodoUseCase.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/tugas2pbb/usecases/TodoUseCase.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_create_todo.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_create_todo.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_edit_todo.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_edit_todo.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_galeri.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_galeri.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_todo.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_todo.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/drawer_header.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/drawer_header.xml" afterDir="false" />
-    </list>
+    <list default="true" id="330c252d-5779-4fdb-bb6b-51a80f56278d" name="Changes" comment="Tugas Aplikasi 100%" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -346,7 +330,15 @@
       <option name="project" value="LOCAL" />
       <updated>1762686575008</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Tugas Aplikasi 100%">
+      <option name="closed" value="true" />
+      <created>1762737863941</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1762737863941</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -355,7 +347,8 @@
     <MESSAGE value="Update and Delete No Error" />
     <MESSAGE value="Update" />
     <MESSAGE value="Tugas Aplikasi 98%" />
-    <option name="LAST_COMMIT_MESSAGE" value="Tugas Aplikasi 98%" />
+    <MESSAGE value="Tugas Aplikasi 100%" />
+    <option name="LAST_COMMIT_MESSAGE" value="Tugas Aplikasi 100%" />
   </component>
   <component name="play_dynamic_filters_status">
     <option name="appIdToCheckInfo">
